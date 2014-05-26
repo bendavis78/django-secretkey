@@ -62,8 +62,8 @@ def check_secret_key_file(*args, **kwargs):
     if not current:
         # This can happen if the SECRET_KEY_FILE was created manually
         errors.append(checks.Error(
-            "Your site does not yet have a stored signature, which is used "
-            "prevent accidental changes to the secret key. ",
+            "The current site does not yet have a stored signature, which is "
+            "used  prevent accidental changes to the secret key. ",
             hint="Run the 'update_signature' management command to create a "
                  "new signature.",
             obj=Signature,

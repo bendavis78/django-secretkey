@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 import string
 import logging
 
@@ -20,15 +22,30 @@ class SignatureManager(models.Manager):
     def current_site(self):
         if not apps.is_installed('django.contrib.sites'):
             return None
-        return Site.objects.get_current()
+        try:
+            return Site.objects.get_current()
+        except Site.DoesNotExist:
+            return None
 
-    def get_current(self):
-        objects = self.get_queryset().filter(site=self.current_site)
+    def get_current(self, site=None):
+        site = site or self.current_site
+        objects = self.get_queryset().filter(site=site)
         if objects.count() > 0:
             return objects.latest()
         return None
 
-    def create_signature(self, force=False):
+    def get_all_current_signatures(self):
+        def sites_iter():
+            yield None
+            for site in Site.objects.all():
+                yield site
+        for site in sites_iter():
+            try:
+                yield self.get_queryset().filter(site=site).latest()
+            except self.model.DoesNotExist:
+                pass
+
+    def create_signature(self, site=None, force=False):
         """
         Creates a new stored signature for the current site.
 
@@ -36,16 +53,17 @@ class SignatureManager(models.Manager):
         If `force` is True, and a current signature exists, this method will
         overwrite the current signature.
         """
-        if self.get_current() and not force:
+        site = site or self.current_site
+        if self.get_current(site) and not force:
             raise ValueError("A signature already exists for this site.")
         signer = Signer(settings.SECRET_KEY)
         value = ''.join(random.sample(string.letters, 32))
         signed = signer.sign(value)
-        signature = Signature(site=self.current_site, signed_value=signed)
+        signature = Signature(site=site, signed_value=signed)
         signature.save()
-        if self.current_site:
+        if site:
             logger.info("Created new signature for site '{0}': {1}".format(
-                self.current_site, signed))
+                site, signed))
         else:
             logger.info("Created new signature: ".format(signed))
         return signature
@@ -113,7 +131,7 @@ class Signature(models.Model):
         super(Signature, self).save(*args, **kwargs)
 
     def __str__(self):
-        if self._default_manager.current_site:
+        if self.site:
             fmt = "{site.name}: {date:%Y-%m-%d} ({status})"
         else:
             fmt = "{date:%Y-%m-%d} ({status})"
