@@ -35,10 +35,11 @@ def check_secret_key_file(*args, **kwargs):
 
     filename = os.path.basename(settings.SECRET_KEY_FILE)
     # Check that it has secure permissions
-    if oct(os.stat(settings.SECRET_KEY_FILE).st_mode & 0o777) != '0600':
+    mode = getattr(settings, 'SECRET_KEY_SECURE_MODE', '0600')
+    if oct(os.stat(settings.SECRET_KEY_FILE).st_mode & 0o777) != mode:
         errors.append(checks.Error(
             "The secret key file has insecure permisisons.",
-            hint=("Try running: chmod 0600 {0}"
+            hint=("Try running: chmod 0600 {0}, or set SECRET_KEY_SECURE_MODE."
                   .format(settings.SECRET_KEY_FILE)),
             obj=filename,
             id='secretkey.E003'))
