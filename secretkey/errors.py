@@ -1,0 +1,2 @@
+class SecretKeyFileNotFound(IOError):
+    pass
