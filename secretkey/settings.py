@@ -68,7 +68,10 @@ def configure_secure():
     given settings module.
 
     Use this function wherever you initialize Django, such as manage.py, wsgi
-    modules, etc.
+    modules, etc. If you want to enforce a file-based SECRET_KEY but do not
+    wish to use the signature checking feature of django-secretkey, you can
+    still use this function to configure your settings without having
+    "secretkey" in your INSTALLED_APPS
     """
     if conf.settings.configured:
         return
