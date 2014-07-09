@@ -35,8 +35,8 @@ def check_secret_key_file(*args, **kwargs):
 
     filename = os.path.basename(settings.SECRET_KEY_FILE)
     # Check that it has secure permissions
-    mode = getattr(settings, 'SECRET_KEY_SECURE_MODE', '0600')
-    if oct(os.stat(settings.SECRET_KEY_FILE).st_mode & 0o777) != mode:
+    mode = getattr(settings, 'SECRET_KEY_SECURE_MODE', 0o600)
+    if oct(os.stat(settings.SECRET_KEY_FILE).st_mode & 0o777) != oct(mode):
         errors.append(checks.Error(
             "The secret key file has insecure permisisons.",
             hint=("Try running: chmod 0600 {0}, or set SECRET_KEY_SECURE_MODE."
@@ -55,7 +55,8 @@ def check_secret_key_file(*args, **kwargs):
             id='secretkey.W004'))
 
     # If the db has not been migrated yet, skip the rest of the checks
-    if not Signature.objects.db_ready():
+    if (not settings.SECRET_KEY_STORE_SIGNATURE or not
+            Signature.objects.db_ready()):
         return errors
 
     # Make sure the current signature is still valid

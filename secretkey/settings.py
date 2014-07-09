@@ -17,9 +17,11 @@ class SecureSettings(conf.Settings):
     """
     def __init__(self, settings_module):
         super(SecureSettings, self).__init__(settings_module)
-        if not self.SECRET_KEY_FILE:
+        if not getattr(self, 'SECRET_KEY_FILE', ''):
             raise conf.ImproperlyConfigured(
                 "The SECRET_KEY_FILE setting must not be empty")
+        self.SECRET_KEY_STORE_SIGNATURE = getattr(
+            self, 'SECRET_KEY_STORE_SIGNATURE', True)
 
     def get_secret_key(self):
         try:
@@ -70,8 +72,7 @@ def configure_secure():
     Use this function wherever you initialize Django, such as manage.py, wsgi
     modules, etc. If you want to enforce a file-based SECRET_KEY but do not
     wish to use the signature checking feature of django-secretkey, you can
-    still use this function to configure your settings without having
-    "secretkey" in your INSTALLED_APPS
+    set `SECRET_KEY_STORE_SIGNATURE` to `False` in your settings.
     """
     if conf.settings.configured:
         return
