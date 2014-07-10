@@ -5,6 +5,7 @@ import os
 
 from django.conf import settings
 from django.core import checks
+from django.utils import six
 
 from secretkey.models import Signature
 
@@ -36,11 +37,13 @@ def check_secret_key_file(*args, **kwargs):
     filename = os.path.basename(settings.SECRET_KEY_FILE)
     # Check that it has secure permissions
     mode = getattr(settings, 'SECRET_KEY_SECURE_MODE', 0o600)
+    if isinstance(mode, six.string_types):
+        mode = int(mode, 8)
     if oct(os.stat(settings.SECRET_KEY_FILE).st_mode & 0o777) != oct(mode):
         errors.append(checks.Error(
-            "The secret key file has insecure permisisons.",
-            hint=("Try running: chmod 0600 {0}, or set SECRET_KEY_SECURE_MODE."
-                  .format(settings.SECRET_KEY_FILE)),
+            "The secret key file has insecure permisisons.", hint=(
+                "Try running: chmod {0:o} {1}, or set SECRET_KEY_SECURE_MODE."
+                .format(mode, settings.SECRET_KEY_FILE)),
             obj=filename,
             id='secretkey.E003'))
 

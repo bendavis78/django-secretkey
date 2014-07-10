@@ -45,9 +45,9 @@ class Command(BaseCommand):
         utils.create_secret_key_file(settings.SECRET_KEY_FILE,
                                      key_length=key_length)
         self.update_signature(opts)
-        self.stdout.write(self.style.NOTICE(
+        self.stdout.write(
             "Successfully create secret key in '{}'\n"
-            .format(settings.SECRET_KEY_FILE)))
+            .format(settings.SECRET_KEY_FILE))
 
     def verify(self, opts):
         # don't do any db operations if this app hasn't been migrated yet
