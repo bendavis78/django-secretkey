@@ -6,6 +6,7 @@ import uuid
 
 import lockfile
 from django.utils import crypto
+from django.utils.six.moves import range
 
 
 def generate_secret_key(length=64):
@@ -31,7 +32,7 @@ def generate_secret_key(length=64):
         )
     rand = random.random
     chars = string.printable.strip()
-    return ''.join(chars[int(rand() * len(chars))] for i in xrange(0, length))
+    return ''.join(chars[int(rand() * len(chars))] for i in range(0, length))
 
 
 def create_secret_key_file(key_file, key_length=64):
